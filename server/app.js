@@ -8,13 +8,13 @@ let socketio = require('socket.io');
 let socketHandler = require('./socket'); //socket要实现的具体逻
 
 let User = require('./models/User');
-let Idtoid =require('./models/Idtoid');
+let Idtoid = require('./models/Idtoid');
 
 
 let app = express();
 
-app.use(bodyParser.json({limit: '50mb'}));//限制文件大小
-app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+app.use(bodyParser.json({ limit: '50mb' }));//限制文件大小
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(session({
     secret: 'secret', // 对session id 相关的cookie 进行签名
     resave: true,
@@ -31,7 +31,7 @@ app.use((req, res, next) => {
         try {
             req.userInfo = req.session.userInfo;
             User.findOne({
-                _id:req.userInfo._id
+                _id: req.userInfo._id
             }).then((userInfo) => {
                 req.userInfo.isAdmin = Boolean(userInfo.isAdmin);
                 req.userInfo.username = userInfo.username;
@@ -50,11 +50,11 @@ app.use('/chat', require('./routers/chat'));
 app.use('/comment', require('./routers/comment'));
 app.use('/profile', require('./routers/profile'));
 app.use('/pyq', require('./routers/pyq'));
-app.use('/search',require('./routers/search'));
-app.use('/upload', require('./routers/upload'));
+app.use('/search', require('./routers/search'));
+// app.use('/upload', require('./routers/upload'));
 app.use('/', require('./routers/main'));
 
-mongoose.connect('mongodb://127.0.0.1:27017/social', {useNewUrlParser:true},(err) => {
+mongoose.connect('mongodb://127.0.0.1:27017/social', { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     let serve;
     if (err) {
         console.log("数据库连接失败。");
@@ -67,23 +67,23 @@ mongoose.connect('mongodb://127.0.0.1:27017/social', {useNewUrlParser:true},(err
             socket.on('login', (username) => {
                 socketHandler.saveUserSocketId(username, socketId)
             });
-            socket.on('comment',(toUserName) => {
+            socket.on('comment', (toUserName) => {
                 Idtoid.findOne({
                     username: toUserName
                 }).then((rs) => {
                     io.to(rs.socketid).emit('receiveComment')
                 })
             });
-            socket.on('chat',(data) => {
+            socket.on('chat', (data) => {
                 Idtoid.findOne({
                     username: data.to_user
                 }).then((rs) => {
-                    io.to(rs.socketid).emit('receiveMsg',{
-                        from_user:data.from_user,
-                        message:data.message,
-                        time:data.time,
-                        avater:data.avater,
-                        _id:data._id
+                    io.to(rs.socketid).emit('receiveMsg', {
+                        from_user: data.from_user,
+                        message: data.message,
+                        time: data.time,
+                        avater: data.avater,
+                        _id: data._id
                     })
                 })
             })

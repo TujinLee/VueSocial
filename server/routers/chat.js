@@ -7,44 +7,44 @@ router.post('/chatwith', (req, res) => {
     let chatWith = req.body.chatWithId;
     let user_id = req.body.user_id;
     let content = req.body.content;
-    if (chatWith == user_id){
+    if (chatWith == user_id) {
         new ChatContent({
             chatWith: chatWith,
             user_id: user_id,
             content: content,
-            unread:false
+            unread: false
         }).save().then((newContent) => {
             ChatRelation.findOne({
-                $or:[{
-                    userA:user_id,
-                    userB:chatWith
-                },{
-                    userB:user_id,
-                    userA:chatWith
+                $or: [{
+                    userA: user_id,
+                    userB: chatWith
+                }, {
+                    userB: user_id,
+                    userA: chatWith
                 }]
-            }).then((rs)=>{
-                if (rs){
+            }).then((rs) => {
+                if (rs) {
                     let chatContent = rs.chatContent;
                     chatContent.unshift(newContent._id);
                     ChatRelation.update({
-                        _id:rs.id
-                    },{
-                        chatContent:chatContent
-                    }).then(()=>{
+                        _id: rs.id
+                    }, {
+                        chatContent: chatContent
+                    }).then(() => {
                         res.json({
-                            code:0,
-                            data:newContent
+                            code: 0,
+                            data: newContent
                         })
                     })
-                }else {
+                } else {
                     new ChatRelation({
-                        userA:user_id,
-                        userB:chatWith,
-                        chatContent:[{newContent}]
-                    }).then(()=>{
+                        userA: user_id,
+                        userB: chatWith,
+                        chatContent: [{ newContent }]
+                    }).then(() => {
                         res.json({
-                            code:0,
-                            data:newContent
+                            code: 0,
+                            data: newContent
                         })
                     })
                 }
@@ -58,36 +58,36 @@ router.post('/chatwith', (req, res) => {
         content: content
     }).save().then((newContent) => {
         ChatRelation.findOne({
-            $or:[{
-                userA:user_id,
-                userB:chatWith
-            },{
-                userB:user_id,
-                userA:chatWith
+            $or: [{
+                userA: user_id,
+                userB: chatWith
+            }, {
+                userB: user_id,
+                userA: chatWith
             }]
-        }).then((rs)=>{
-            if (rs){
+        }).then((rs) => {
+            if (rs) {
                 let chatContent = rs.chatContent;
                 chatContent.unshift(newContent._id);
                 ChatRelation.update({
-                    _id:rs.id
-                },{
-                    chatContent:chatContent
-                }).then(()=>{
+                    _id: rs.id
+                }, {
+                    chatContent: chatContent
+                }).then(() => {
                     res.json({
-                        code:0,
-                        data:newContent
+                        code: 0,
+                        data: newContent
                     })
                 })
-            }else {
+            } else {
                 new ChatRelation({
-                    userA:user_id,
-                    userB:chatWith,
-                    chatContent:[newContent._id]
-                }).save().then(()=>{
+                    userA: user_id,
+                    userB: chatWith,
+                    chatContent: [newContent._id]
+                }).save().then(() => {
                     res.json({
-                        code:0,
-                        data:newContent
+                        code: 0,
+                        data: newContent
                     })
                 })
             }
@@ -102,9 +102,9 @@ router.post('/clearchatunread', (req, res) => {
         user_id: to,
         chatWith: from,
         unread: true
-    },{
+    }, {
         unread: false
-    }, {multi: true}).then((rs) => {
+    }, { multi: true }).then((rs) => {
         res.json();
     })
 });
@@ -122,23 +122,23 @@ router.get('/chatwith', (req, res) => {
     }).populate(['chatContent',
         {
             path: 'chatContent',
-            populate: {path: 'chatWith'}
+            populate: { path: 'chatWith' }
         }, {
             path: 'chatContent',
-            populate: {path: 'user_id'}
+            populate: { path: 'user_id' }
         }]).then((rs) => {
-        if (rs) {
-            res.json({
-                code: 0,
-                chatList: rs.chatContent
-            })
-        } else {
-            res.json({
-                code: 1,
-                msg: '暂无聊天记录'
-            })
-        }
-    })
+            if (rs) {
+                res.json({
+                    code: 0,
+                    chatList: rs.chatContent
+                })
+            } else {
+                res.json({
+                    code: 1,
+                    msg: '暂无聊天记录'
+                })
+            }
+        })
 });
 router.get('/chatlist', (req, res) => {
     let user_id = req.query.user_id;
@@ -151,41 +151,41 @@ router.get('/chatlist', (req, res) => {
     }).populate(['chatContent',
         {
             path: 'chatContent',
-            populate: {path: 'chatWith'}
+            populate: { path: 'chatWith' }
         }, {
             path: 'chatContent',
-            populate: {path: 'user_id'}
+            populate: { path: 'user_id' }
         }]).then((chatList) => {
-        let list = [];
-        chatList.forEach(item => {
-            let data = {
-                chatWith: '',
-                addTime: '',
-                content: '',
-                unread: 0
-            };
-            if (item.chatContent[0].chatWith._id == user_id) {
-                data.chatWith = item.chatContent[0].user_id
-            } else {
-                data.chatWith = item.chatContent[0].chatWith
-            }
-            data.addTime = item.chatContent[0].addTime;
-            data.content = item.chatContent[0].content;
-            item.chatContent.forEach(item => {
-                if (item.unread && item.chatWith._id == user_id) {
-                    data.unread++;
+            let list = [];
+            chatList.forEach(item => {
+                let data = {
+                    chatWith: '',
+                    addTime: '',
+                    content: '',
+                    unread: 0
+                };
+                if (item.chatContent[0].chatWith._id == user_id) {
+                    data.chatWith = item.chatContent[0].user_id
+                } else {
+                    data.chatWith = item.chatContent[0].chatWith
                 }
+                data.addTime = item.chatContent[0].addTime;
+                data.content = item.chatContent[0].content;
+                item.chatContent.forEach(item => {
+                    if (item.unread && item.chatWith._id == user_id) {
+                        data.unread++;
+                    }
+                });
+                list.push(data)
             });
-            list.push(data)
-        });
-        list.sort((a, b) => {
-            return b.addTime - a.addTime
-        });
-        res.json({
-            code: 0,
-            chatList: list
+            list.sort((a, b) => {
+                return b.addTime - a.addTime
+            });
+            res.json({
+                code: 0,
+                chatList: list
+            })
         })
-    })
 });
 
 module.exports = router;
